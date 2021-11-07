@@ -38,6 +38,7 @@ class ScrollPanel(Panel):
         self.cursor = 0
         self.offset = 0
         self.list_height = 1
+        self.wrapping = False
 
     @property
     def selected_item(self):
@@ -54,7 +55,10 @@ class ScrollPanel(Panel):
         is_selected: whether or not that item is the currently selected one
         item: the item to paint
         """
-        self.win.addstr(y, x, str(item)[:maxwidth])
+        try:
+            self.win.addstr(y, x, str(item)[:maxwidth])
+        except curses.error:
+            pass
 
     def paint(self, clear=False):
         super().paint(clear)
@@ -118,7 +122,7 @@ class ScrollPanel(Panel):
             return
 
         x = 0
-        w = self.dim[1] - 1
+        w = self.dim[1]
         if self.border & Panel.BORDER_TOP != 0:
             y += 1
         if self.border & Panel.BORDER_LEFT != 0:
@@ -151,10 +155,54 @@ class ScrollPanel(Panel):
         return True
 
     def handle_key(self, key):
+        """Handle user input key
+
+        Returns True if handled, False otherwise
+        """
         handled, must_repaint, must_clear = self.handle_scrolling_keys(key)
 
         if handled and must_repaint:
             self.paint(must_clear)
+
+        return handled
+
+    def select_next(self):
+        """Move the cursor to the next item and update the representation
+
+        Returns True if repaint required, otherwise False"""
+        if self.wrapping:
+            index = (self.cursor+1) % len(self.items)
+        else:
+            index = min(self.cursor+1, len(self.items)-1)
+        return self._select_by_index(index)
+
+    def select_previous(self):
+        """Move the cursor to the previous item and update the representation
+
+        Returns True if repaint required, otherwise False"""
+        if self.wrapping:
+            index = (self.cursor-1) % len(self.items)
+        else:
+            index = max(self.cursor-1, 0)
+        return self._select_by_index(index)
+
+    def _select_by_index(self, index):
+        """Move the cursor to item with index
+
+        Return True if repaint is required, False otherwise
+
+        If False is returned the list may or may not have updated
+        and repainted the old and the new element.
+        """
+        must_repaint = False
+        if index != self.cursor:
+            old_cursor = self.cursor
+            self.cursor = index
+            must_repaint = self.scroll()
+            if not must_repaint:
+                self.paint(old_cursor)
+                self.paint(self.cursor)
+        return must_repaint
 
     def handle_scrolling_keys(self, key):
         """Can be called to handle scrolling keys
@@ -174,12 +222,20 @@ class ScrollPanel(Panel):
         cursor = self.cursor
         handled = False
 
-        if key in self.SCROLL_PREVIOUS and cursor > 0:
-            cursor -= 1
+        if key in self.SCROLL_PREVIOUS:
+            if cursor == 0:
+                if self.wrapping:
+                    cursor = len(self.items) - 1
+            else:
+                cursor -= 1
             handled = True
 
-        elif key in self.SCROLL_NEXT and cursor < len(self.items)-1:
-            cursor += 1
+        elif key in self.SCROLL_NEXT:
+            if cursor == len(self.items)-1:
+                if self.wrapping:
+                    cursor = 0
+            else:
+                cursor += 1
             handled = True
 
         elif key in self.SCROLL_PREVIOUS_PAGE and cursor > 0:
@@ -198,14 +254,9 @@ class ScrollPanel(Panel):
             cursor = 0
             handled = True
 
-        if self.cursor != cursor and handled:
-            old_cursor = self.cursor
-            self.cursor = cursor
-            must_repaint = self.scroll()
+        if handled:
+            must_repaint = self._select_by_index(cursor)
             must_clear = True
-            if not must_repaint:
-                self.paint_item(old_cursor)
-                self.paint_item(self.cursor)
 
         return handled, must_repaint, must_clear
 

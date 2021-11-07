@@ -5,6 +5,13 @@ This file contains the changes made between released versions.
 The format is based on [Keep a changelog](https://keepachangelog.com/) and the versioning tries to follow
 [Semantic Versioning](https://semver.org).
 
+## 1.2.0
+### Added
+- Basic autocompletion support for InputLine through the Completion class
+
+### Fixed
+- `do_paint_item` of ScrollPanel would tell that the window is one cell to narrow (maxwidth-1). It does no longer, but that also means you have to `try ... catch curses.error` if you draw into the right-most cell.
+
 ## 1.1.0
 ### Added
 - `InputLine` has a `read_only` property

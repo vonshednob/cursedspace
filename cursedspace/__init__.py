@@ -3,6 +3,6 @@ from .application import Application
 from .key import Key
 from .panel import Panel
 from .scrollpanel import ScrollPanel
-from .inputline import InputLine
+from .inputline import InputLine, Completion
 from .shellcontext import ShellContext
 
