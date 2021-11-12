@@ -146,7 +146,6 @@ class ScrollPanel(Panel):
                 return False
         else:
             if self.cursor - self.offset < scroll_margin:
-                logging.debug(f'a')
                 self.offset = max([0,
                                    self.cursor - self.list_height,
                                    self.cursor - scroll_margin])
