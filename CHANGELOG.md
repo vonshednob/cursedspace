@@ -5,6 +5,10 @@ This file contains the changes made between released versions.
 The format is based on [Keep a changelog](https://keepachangelog.com/) and the versioning tries to follow
 [Semantic Versioning](https://semver.org).
 
+## 1.2.1
+### Fixed
+- Once more a fix for the scrolling behaviour when the available space for the list is smaller than the scroll margin
+
 ## 1.2.0
 ### Added
 - Basic autocompletion support for InputLine through the Completion class

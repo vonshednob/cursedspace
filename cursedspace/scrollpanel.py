@@ -135,20 +135,25 @@ class ScrollPanel(Panel):
 
     def scroll(self):
         self.cursor = max(0, min(self.cursor, len(self.items)-1))
+        scroll_margin = min(self.list_height // 2, self.SCROLL_MARGIN)
 
         if self.SCROLL_PAGING:
-            if self.cursor - self.offset >= self.list_height - self.SCROLL_MARGIN and self.list_height < len(self.items):
-                self.offset = max(0, self.cursor - self.SCROLL_MARGIN)
-            elif self.cursor - self.offset < self.SCROLL_MARGIN and self.offset > 0:
-                self.offset = max(0, self.cursor - self.list_height + self.SCROLL_MARGIN + 1)
+            if self.cursor - self.offset >= self.list_height - scroll_margin and self.list_height < len(self.items):
+                self.offset = max(0, self.cursor - scroll_margin)
+            elif self.cursor - self.offset < scroll_margin and self.offset > 0:
+                self.offset = max(0, self.cursor - self.list_height + scroll_margin + 1)
             else:
                 return False
         else:
-            if self.cursor - self.offset < self.SCROLL_MARGIN:
-                self.offset = max(0, self.cursor - self.SCROLL_MARGIN)
-            elif self.cursor - self.offset >= self.list_height - self.SCROLL_MARGIN:
-                self.offset = min(max(0, self.cursor + self.SCROLL_MARGIN + 1 - self.list_height),
-                                  max(0, len(self.items)-self.list_height))
+            if self.cursor - self.offset < scroll_margin:
+                logging.debug(f'a')
+                self.offset = max([0,
+                                   self.cursor - self.list_height,
+                                   self.cursor - scroll_margin])
+            if self.cursor - self.offset >= self.list_height - scroll_margin:
+                self.offset = max([0,
+                                   self.cursor - self.list_height+1,
+                                   self.cursor + scroll_margin+1 - self.list_height])
             else:
                 return False
 
