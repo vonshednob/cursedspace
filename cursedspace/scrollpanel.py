@@ -1,4 +1,5 @@
 import curses
+import logging
 
 from .panel import Panel
 from .key import Key
@@ -63,8 +64,19 @@ class ScrollPanel(Panel):
     def paint(self, clear=False):
         super().paint(clear)
 
+        y, x, w, _ = self.content_area()
+
         for itemidx in range(self.offset, min(self.offset + self.list_height, len(self.items))):
             self.paint_item(itemidx)
+            y += 1
+
+        # Fill the rest with blanks
+        for y in range(y, self.list_height):
+            try:
+                self.win.addstr(y, x, " "*w)
+            except curses.error as exc:
+                logging.error(exc)
+        
         self.win.noutrefresh()
 
     def jump_to(self, item):
@@ -88,12 +100,8 @@ class ScrollPanel(Panel):
         return True
 
     def focus(self):
-        y, x = 0, 0
-        if self.border & Panel.BORDER_TOP != 0:
-            y += 1
-        if self.border & Panel.BORDER_LEFT != 0:
-            x += 1
-        y += max(0, min(self.list_height-1, self.cursor - self.offset))
+        y, x, h, _ = self.content_area()
+        y = max(y, min(h-1, self.cursor - self.offset))
 
         try:
             self.win.move(y, x)
@@ -107,31 +115,19 @@ class ScrollPanel(Panel):
         self.calc_list_height()
 
     def calc_list_height(self):
-        self.list_height = self.dim[0]
-        if self.border & Panel.BORDER_TOP != 0:
-            self.list_height -= 1
-        if self.border & Panel.BORDER_BOTTOM != 0:
-            self.list_height -= 1
+        _, _, self.list_height, _ = self.content_area()
 
     def paint_item(self, itemidx):
         if not isinstance(itemidx, int):
             itemidx = self.items.index(itemidx)
-        y = itemidx - self.offset
+        itemy = itemidx - self.offset
 
-        if y < 0 or y >= self.list_height:
+        y, x, h, w = self.content_area()
+
+        if itemy < y or itemy > h:
             return
 
-        x = 0
-        w = self.dim[1]
-        if self.border & Panel.BORDER_TOP != 0:
-            y += 1
-        if self.border & Panel.BORDER_LEFT != 0:
-            x += 1
-            w -= 1
-        if self.border & Panel.BORDER_RIGHT != 0:
-            w -= 1
-
-        self.do_paint_item(y, x, w, itemidx == self.cursor, self.items[itemidx])
+        self.do_paint_item(itemy, x, w, itemidx == self.cursor, self.items[itemidx])
 
     def scroll(self):
         self.cursor = max(0, min(self.cursor, len(self.items)-1))
@@ -150,9 +146,7 @@ class ScrollPanel(Panel):
                                    self.cursor - self.list_height,
                                    self.cursor - scroll_margin])
             if self.cursor - self.offset >= self.list_height - scroll_margin:
-                self.offset = max([0,
-                                   self.cursor - self.list_height+1,
-                                   self.cursor + scroll_margin+1 - self.list_height])
+                self.offset = max(0, self.cursor + min(scroll_margin, len(self.items)-self.cursor) - self.list_height)
             else:
                 return False
 
@@ -227,7 +221,7 @@ class ScrollPanel(Panel):
         handled = False
 
         if key in self.SCROLL_PREVIOUS:
-            if cursor == 0:
+            if cursor <= 0:
                 if self.wrapping:
                     cursor = len(self.items) - 1
             else:

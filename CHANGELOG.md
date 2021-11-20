@@ -5,9 +5,20 @@ This file contains the changes made between released versions.
 The format is based on [Keep a changelog](https://keepachangelog.com/) and the versioning tries to follow
 [Semantic Versioning](https://semver.org).
 
+## 1.3.0
+### Added
+- Panel has a `BORDER_STYLE` that can be used to have a differently styled border
+- Panel has a `content_area` function that indicates the dimensions of the area inside the border (if any)
+
+### Changed
+- ScrollPanel clears the space below the last item and the bottom of the panel, even when `clear` is `False`
+
+### Fixed
+- Terminals are no longer in a broken state when closing the application
+
 ## 1.2.2
 ### Fixed
-- Stray logging statement caused crashed
+- Stray logging statement caused crash
 
 ## 1.2.1
 ### Fixed

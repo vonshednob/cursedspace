@@ -27,7 +27,7 @@ class Completion:
             label = item[:maxwidth]
             label = label + " "*(maxwidth-len(label)+1)
             try:
-                self.win.addstr(y, x, label, attr)
+                self.win.addstr(y, x, label[:maxwidth], attr)
             except curses.error:
                 pass
 
@@ -124,7 +124,7 @@ class Completion:
         if space_below >= height:
             py = y+1
         elif space_above >= height:
-            py = y - height - 1
+            py = y - height
 
         self.suggestions.resize(height, width)
         self.suggestions.move(py, px)

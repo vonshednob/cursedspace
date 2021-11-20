@@ -88,7 +88,6 @@ class Application:
         self.preferred_encoding = locale.getpreferredencoding()
 
         self.screen = curses.initscr()
-        curses.def_shell_mode()
 
         if curses.has_colors():
             curses.start_color()
@@ -112,10 +111,12 @@ class Application:
             except curses.error:
                 pass
 
+        curses.reset_shell_mode()
+
         try:
             curses.endwin()
-        except:
-            pass
+        except curses.error as exc:
+            logging.info(f"Ending curses failed: {exc}")
 
     def set_term_title(self, title):
         """Attempt to set the title of the terminal emulator"""

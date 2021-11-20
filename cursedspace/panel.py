@@ -9,6 +9,7 @@ class Panel:
     BORDER_LEFT = 4
     BORDER_RIGHT = 8
     BORDER_ALL = 15
+    BORDER_STYLE = '┌┐└┘─│'
 
     def __init__(self, app, size=None, pos=None):
         """app is the cursedspace.Application this panel belongs to
@@ -62,13 +63,31 @@ class Panel:
             self.win.touchwin()
         self.win.noutrefresh()
 
-    def focus(self):
-        """Move the cursor into this panel"""
-        y, x = 0, 0
+    def content_area(self):
+        """The area available for content, i.e. inside the borders
+
+        Returns a tuple (y, x, height, width)
+        """
+        y = 0
+        x = 0
+        h, w = self.dim
+
         if self.border & Panel.BORDER_TOP != 0:
             y += 1
+            h -= 1
         if self.border & Panel.BORDER_LEFT != 0:
             x += 1
+            w -= 1
+        if self.border & Panel.BORDER_RIGHT != 0:
+            w -= 1
+        if self.border & Panel.BORDER_BOTTOM != 0:
+            h -= 1
+
+        return y, x, h, w
+
+    def focus(self):
+        """Move the cursor into this panel"""
+        y, x, _, _ = self.content_area()
         
         try:
             self.win.move(y, x)
@@ -98,40 +117,40 @@ class Panel:
             self.win.erase()
 
         if self.border & (Panel.BORDER_TOP + Panel.BORDER_LEFT) != 0:
-            self.win.addstr(0, 0, '┌')
+            self.win.addstr(0, 0, self.BORDER_STYLE[0])
             left += 1
             left_height -= 1
             left_top += 1
             right_top += 1
             top_width -= 1
         if self.border & (Panel.BORDER_TOP + Panel.BORDER_RIGHT) != 0:
-            self.win.addstr(0, right, '┐')
+            self.win.addstr(0, right, self.BORDER_STYLE[1])
             right -= 1
             right_height -= 1
             top_width -= 1
         if self.border & (Panel.BORDER_BOTTOM + Panel.BORDER_LEFT) != 0:
             left_height -= 1
             bottom_width -= 1
-            self.win.addstr(self.dim[0]-1, 0, '└')
+            self.win.addstr(self.dim[0]-1, 0, self.BORDER_STYLE[2])
         if self.border & (Panel.BORDER_BOTTOM + Panel.BORDER_RIGHT) != 0:
             right_height -= 1
             bottom_width -= 1
             # curses raises an exception when drawing in the lowest, most right
             # cell of the window
             try:
-                self.win.addnstr(self.dim[0]-1, self.dim[1]-1, '┘', 1)
-            except:
+                self.win.addnstr(self.dim[0]-1, self.dim[1]-1, self.BORDER_STYLE[3], 1)
+            except curses.error:
                 pass
         if self.border & Panel.BORDER_TOP != 0:
-            self.win.addstr(top, left, '─'*top_width)
+            self.win.addstr(top, left, self.BORDER_STYLE[4]*top_width)
         if self.border & Panel.BORDER_BOTTOM != 0:
-            self.win.addstr(bottom, left, '─'*bottom_width)
+            self.win.addstr(bottom, left, self.BORDER_STYLE[4]*bottom_width)
         if self.border & Panel.BORDER_LEFT != 0:
             for y in range(left_height):
-                self.win.addstr(left_top+y, 0, '│')
+                self.win.addstr(left_top+y, 0, self.BORDER_STYLE[5])
         if self.border & Panel.BORDER_RIGHT != 0:
             for y in range(right_height):
-                self.win.addstr(right_top+y, self.dim[1]-1, '│')
+                self.win.addstr(right_top+y, self.dim[1]-1, self.BORDER_STYLE[5])
         self.win.noutrefresh()
 
     def move(self, y, x):
