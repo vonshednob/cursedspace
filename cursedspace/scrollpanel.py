@@ -101,7 +101,7 @@ class ScrollPanel(Panel):
 
     def focus(self):
         y, x, h, _ = self.content_area()
-        y = max(y, min(h-1, self.cursor - self.offset))
+        y = max(y, min(h-1, y + self.cursor - self.offset))
 
         try:
             self.win.move(y, x)
@@ -120,9 +120,9 @@ class ScrollPanel(Panel):
     def paint_item(self, itemidx):
         if not isinstance(itemidx, int):
             itemidx = self.items.index(itemidx)
-        itemy = itemidx - self.offset
 
         y, x, h, w = self.content_area()
+        itemy = y + itemidx - self.offset
 
         if itemy < y or itemy > h:
             return

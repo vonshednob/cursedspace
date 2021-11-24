@@ -5,6 +5,10 @@ This file contains the changes made between released versions.
 The format is based on [Keep a changelog](https://keepachangelog.com/) and the versioning tries to follow
 [Semantic Versioning](https://semver.org).
 
+## 1.3.1
+### Fixed
+- ScrollPanel shifted the entire list by -1
+
 ## 1.3.0
 ### Added
 - Panel has a `BORDER_STYLE` that can be used to have a differently styled border
