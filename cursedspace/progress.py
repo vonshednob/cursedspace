@@ -41,7 +41,7 @@ class ProgressBar(Panel):
         painted = round((w - self.description_size)*self.progress/100)
         if painted + self.description_size + 1 > w:
             painted = w - self.description_size - 1
-        not_painted = w - self.description_size - painted
+        not_painted = w - self.description_size - painted - 1
         bar = self.PROGRESS_SYMBOL*painted + self.NO_PROGRESS_SYMBOL*not_painted
 
         self.win.addstr(1, 0, self.description)
