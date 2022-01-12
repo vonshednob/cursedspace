@@ -46,17 +46,19 @@ class ProgressBar(Panel):
     def paint(self, clear=False):
         super().paint(clear=clear)
         y, x, h, w = self.content_area()
+        bar_w = w - self.description_size - 2
 
-        painted = round((w - self.description_size)*self.progress/100)
-        if painted + self.description_size + x > w:
-            painted = w - self.description_size - x
-        not_painted = w - self.description_size - painted - x - 2
+        painted = round(bar_w*self.progress/100)
+        if painted > bar_w:
+            painted = bar_w
+        not_painted = bar_w - painted
+
         bar = self.PROGRESS_SYMBOL*painted + self.NO_PROGRESS_SYMBOL*not_painted
 
         self.win.addstr(y, 0, self.description)
         if self.color is None:
-            self.win.addstr(y, self.description_size + x + 1, bar)
+            self.win.addstr(y, x + self.description_size + 1, bar)
         else:
-            self.win.addstr(y, self.description_size + x + 1, bar, colors.attr(self.color))
+            self.win.addstr(y, x + self.description_size + 1, bar, colors.attr(self.color))
 
         self.win.noutrefresh()
