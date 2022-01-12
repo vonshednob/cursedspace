@@ -6,3 +6,4 @@ from .scrollpanel import ScrollPanel
 from .inputline import InputLine, Completion
 from .shellcontext import ShellContext
 from .grid import Grid
+from .progress import ProgressBar
