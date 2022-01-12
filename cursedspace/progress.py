@@ -9,18 +9,27 @@ class ProgressBar(Panel):
     PROGRESS_SYMBOL = "█"
     NO_PROGRESS_SYMBOL = " "
 
-    def __init__(self, *args, width=None, description='', color=None, **kwargs):
+    def __init__(self, *args, width=None, border=Panel.BORDER_NONE, description='', color=None, **kwargs):
+        self.border = border
         if width is None:
             size = None
         else:
-            size = (3, width)
+            size = (self.height, width)
         kwargs['size'] = size
-
         super().__init__(*args, **kwargs)
+        self.border = border
+
         self.color = color
         self.progress = 0
         self.description = description
         self.description_size = len(description)
+
+    @property
+    def height(self):
+        if self.border == Panel.BORDER_NONE:
+            return 1
+        else:
+            return 3
 
     def update(self, progress, description=None):
         if progress < 0 or progress > 100:
@@ -32,22 +41,22 @@ class ProgressBar(Panel):
         self.refresh()
 
     def resize(self, h, w):
-        super().resize(3, w)
+        super().resize(self.height, w)
 
     def paint(self, clear=False):
         super().paint(clear=clear)
-        h, w = self.dim
+        y, x, h, w = self.content_area()
 
         painted = round((w - self.description_size)*self.progress/100)
-        if painted + self.description_size + 1 > w:
-            painted = w - self.description_size - 1
-        not_painted = w - self.description_size - painted - 1
+        if painted + self.description_size + x > w:
+            painted = w - self.description_size - x
+        not_painted = w - self.description_size - painted - x - 2
         bar = self.PROGRESS_SYMBOL*painted + self.NO_PROGRESS_SYMBOL*not_painted
 
-        self.win.addstr(1, 0, self.description)
+        self.win.addstr(y, 0, self.description)
         if self.color is None:
-            self.win.addstr(1, self.description_size + 1, bar)
+            self.win.addstr(y, self.description_size + x + 1, bar)
         else:
-            self.win.addstr(1, self.description_size + 1, bar, colors.attr(self.color))
+            self.win.addstr(y, self.description_size + x + 1, bar, colors.attr(self.color))
 
         self.win.noutrefresh()
