@@ -16,8 +16,8 @@ class ProgressBar(Panel):
         else:
             size = (self.height, width)
         kwargs['size'] = size
+        kwargs['border'] = border
         super().__init__(*args, **kwargs)
-        self.border = border
 
         self.color = color
         self.progress = 0
@@ -26,10 +26,21 @@ class ProgressBar(Panel):
 
     @property
     def height(self):
-        if self.border == Panel.BORDER_NONE:
+        h = 1
+        if self.border & Panel.BORDER_TOP != 0:
+            h += 1
+        if self.border & Panel.BORDER_BOTTOM != 0:
+            h += 1
+        if self.border & (Panel.BORDER_LEFT + Panel.BORDER_RIGHT) != 0:
+            h = 3
+        return h
+
+    @property
+    def top(self):
+        if self.border & (Panel.BORDER_LEFT + Panel.BORDER_RIGHT + Panel.BORDER_TOP) != 0:
             return 1
         else:
-            return 3
+            return 0
 
     def update(self, progress, description=None):
         if progress < 0 or progress > 100:
@@ -45,8 +56,9 @@ class ProgressBar(Panel):
 
     def paint(self, clear=False):
         super().paint(clear=clear)
-        y, x, h, w = self.content_area()
+        _, x, h, w = self.content_area()
         bar_w = w - self.description_size - 2
+        y = self.top
 
         painted = round(bar_w*self.progress/100)
         if painted > bar_w:
@@ -55,7 +67,8 @@ class ProgressBar(Panel):
 
         bar = self.PROGRESS_SYMBOL*painted + self.NO_PROGRESS_SYMBOL*not_painted
 
-        self.win.addstr(y, 0, self.description)
+        self.win.addstr(y, x, self.description)
+        self.win.addstr(y, x + self.description_size, ' ')
         if self.color is None:
             self.win.addstr(y, x + self.description_size + 1, bar)
         else:
