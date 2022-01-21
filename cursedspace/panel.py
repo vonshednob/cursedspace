@@ -11,7 +11,7 @@ class Panel:
     BORDER_ALL = 15
     BORDER_STYLE = '┌┐└┘─│'
 
-    def __init__(self, app, size=None, pos=None):
+    def __init__(self, app, size=None, pos=None, border=None):
         """app is the cursedspace.Application this panel belongs to
            size is a tuple (height, width)
            pos the position on the application's window (y, x)"""
@@ -19,7 +19,7 @@ class Panel:
         self.dim = (0, 0)
         self.pos = (0, 0)
         self.win = None
-        self.border = Panel.BORDER_NONE
+        self.border = Panel.BORDER_NONE if border is None else border
 
         if size is not None:
             self.resize(*size)
