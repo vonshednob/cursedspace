@@ -22,7 +22,7 @@ class DemoApplication(Application):
     def __init__(self):
         super().__init__()
         # Instantiate Grid with a reference to the application
-        self.grid = Grid(self, rows=4, cols=4)
+        self.grid = Grid(self, rows=4, cols=5)
 
         # Add some panels, the grid cell declaration can be slices and integers
         self.grid.add_panel(slice(0, 4), slice(0, 2), key='big_mock', panel_class=Mock)
@@ -34,6 +34,10 @@ class DemoApplication(Application):
         self.grid.add_panel(1, 3, panel_class=Mock)
         self.grid.add_panel(2, 3, panel_class=Mock)
         self.grid.add_panel(3, 3, panel_class=Mock)
+        self.grid.add_panel(0, 4, panel_class=Mock)
+        self.grid.add_panel(1, 4, panel_class=Mock)
+        self.grid.add_panel(2, 4, panel_class=Mock)
+        self.grid.add_panel(3, 4, panel_class=Mock)
 
         # We can easily access all panels in the grid
         for panel in self.grid.panels:
@@ -50,6 +54,10 @@ class DemoApplication(Application):
         self.grid[6].border = Panel.BORDER_TOP + Panel.BORDER_RIGHT
         self.grid[7].border = Panel.BORDER_BOTTOM + Panel.BORDER_LEFT
         self.grid[8].border = Panel.BORDER_BOTTOM + Panel.BORDER_RIGHT
+        self.grid[9].border = Panel.BORDER_TOP + Panel.BORDER_BOTTOM
+        self.grid[10].border = Panel.BORDER_LEFT + Panel.BORDER_RIGHT
+        self.grid[11].border = Panel.BORDER_BOTTOM + Panel.BORDER_LEFT + Panel.BORDER_RIGHT
+        self.grid[12].border = Panel.BORDER_TOP + Panel.BORDER_BOTTOM + Panel.BORDER_LEFT
 
     def draw(self):
         self.grid.paint()
