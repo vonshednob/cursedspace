@@ -80,6 +80,8 @@ class Grid:
             ind = self.keys.index(key)
         elif isinstance(key, int):
             ind = key
+        elif isinstance(key, Panel):
+            ind = self.panels.index(key)
         else:
             raise TypeError(f'Key type {type(key)} not recoginzed for deleting panel from Grid')
 
