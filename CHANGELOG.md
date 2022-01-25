@@ -5,6 +5,18 @@ This file contains the changes made between released versions.
 The format is based on [Keep a changelog](https://keepachangelog.com/) and the versioning tries to follow
 [Semantic Versioning](https://semver.org).
 
+## 1.4.0
+
+### Fixed
+- All combinations of borders now draws correctly in `Panel`
+- Readme example missing import
+
+### Added
+- `Grid` class that handles a set of `Panel`s spanning any set of cells in a rectangular grid
+- `ProgressBar` panel to show the value of a variable graphically, allows a description
+- Folder of example usage
+- `Panel` constructor now takes `border` as an argument as well
+
 ## 1.3.1
 ### Fixed
 - ScrollPanel shifted the entire list by -1

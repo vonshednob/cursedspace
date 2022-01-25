@@ -10,6 +10,7 @@ Here’s a very simple example of how to use the cursedspace package:
 
     #!/usr/bin/env python3
 
+    import curses
     from cursedspace import Application, Key, Panel, colors
 
 
@@ -43,6 +44,7 @@ Here’s a very simple example of how to use the cursedspace package:
     # run the application
     DemoApplication().run()
 
+For more examples see the `examples` folder.
 
 ## Components
 
