@@ -61,9 +61,9 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     license_file="LICENSE",
     license_files="LICENSE",
-    url="https://github.com/vonshednob/cursedspace",
+    url="https://vonshednob.cc/cursedspace",
     author="R",
-    author_email="devel+cursedspace@kakaomilchkuh.de",
+    author_email="contact+cursedspace@vonshednob.cc",
     entry_points={'console_scripts': []},
     packages=['cursedspace'],
     package_data={'cursedspace': compile_documentation()},
@@ -72,10 +72,9 @@ setuptools.setup(
                 ('share/doc/cursedspace', [])],
     install_requires=[],
     extras_require={},
-    python_requires='>=3.0',
+    python_requires='>=3.8',
     classifiers=['Development Status :: 3 - Alpha',
                  'Environment :: Console :: Curses',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: MIT License',
                  'Programming Language :: Python :: 3',])
-

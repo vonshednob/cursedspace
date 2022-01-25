@@ -6,7 +6,6 @@ The format is based on [Keep a changelog](https://keepachangelog.com/) and the v
 [Semantic Versioning](https://semver.org).
 
 ## 1.4.0
-
 ### Fixed
 - All combinations of borders now draws correctly in `Panel`
 - Readme example missing import
@@ -16,6 +15,11 @@ The format is based on [Keep a changelog](https://keepachangelog.com/) and the v
 - `ProgressBar` panel to show the value of a variable graphically, allows a description
 - Folder of example usage
 - `Panel` constructor now takes `border` as an argument as well
+
+### Changed
+- Minimum python version is 3.8. Probably.
+- Refer mostly to vonshednob.cc instead of github.com
+
 
 ## 1.3.1
 ### Fixed
