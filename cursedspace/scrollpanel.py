@@ -1,5 +1,4 @@
 import curses
-import logging
 
 from .panel import Panel
 from .key import Key
@@ -64,19 +63,19 @@ class ScrollPanel(Panel):
     def paint(self, clear=False):
         super().paint(clear)
 
-        y, x, w, _ = self.content_area()
+        y, x, _, w = self.content_area()
 
         for itemidx in range(self.offset, min(self.offset + self.list_height, len(self.items))):
             self.paint_item(itemidx)
             y += 1
 
         # Fill the rest with blanks
-        for y in range(y, self.list_height):
+        for y in range(y, self.list_height+1):
             try:
                 self.win.addstr(y, x, " "*w)
-            except curses.error as exc:
-                logging.error(exc)
-        
+            except curses.error:
+                pass
+
         self.win.noutrefresh()
 
     def jump_to(self, item):
@@ -101,7 +100,7 @@ class ScrollPanel(Panel):
 
     def focus(self):
         y, x, h, _ = self.content_area()
-        y = max(y, min(h-1, y + self.cursor - self.offset))
+        y = max(y, min(h, y + self.cursor - self.offset))
 
         try:
             self.win.move(y, x)
@@ -130,11 +129,13 @@ class ScrollPanel(Panel):
         self.do_paint_item(itemy, x, w, itemidx == self.cursor, self.items[itemidx])
 
     def scroll(self):
-        self.cursor = max(0, min(self.cursor, len(self.items)-1))
+        items = len(self.items) if self.items is not None else 0
+        self.cursor = max(0, min(self.cursor, items-1))
         scroll_margin = min(self.list_height // 2, self.SCROLL_MARGIN)
 
         if self.SCROLL_PAGING:
-            if self.cursor - self.offset >= self.list_height - scroll_margin and self.list_height < len(self.items):
+            if self.cursor - self.offset >= self.list_height - scroll_margin and \
+               self.list_height < items:
                 self.offset = max(0, self.cursor - scroll_margin)
             elif self.cursor - self.offset < scroll_margin and self.offset > 0:
                 self.offset = max(0, self.cursor - self.list_height + scroll_margin + 1)
@@ -146,7 +147,10 @@ class ScrollPanel(Panel):
                                    self.cursor - self.list_height,
                                    self.cursor - scroll_margin])
             if self.cursor - self.offset >= self.list_height - scroll_margin:
-                self.offset = max(0, self.cursor + min(scroll_margin, len(self.items)-self.cursor) - self.list_height)
+                self.offset = max(0,
+                                  self.cursor
+                                  + min(scroll_margin, len(self.items) - self.cursor)
+                                  - self.list_height)
             else:
                 return False
 
@@ -257,4 +261,3 @@ class ScrollPanel(Panel):
             must_clear = True
 
         return handled, must_repaint, must_clear
-

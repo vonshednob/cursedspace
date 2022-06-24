@@ -5,6 +5,32 @@ This file contains the changes made between released versions.
 The format is based on [Keep a changelog](https://keepachangelog.com/) and the versioning tries to follow
 [Semantic Versioning](https://semver.org).
 
+## 1.5.2
+### Fixed
+- Positioning of the completion window could break in various conditions
+
+
+## 1.5.1
+### Fixed
+- Advertised, but never used: `Completion.COLOR` is now being used to set the color of a completion menu.
+
+
+## 1.5.0
+### Added
+- `Completion` alternatives may be of type `Completion.Suggestion` to allow for more complex completion behaviour
+
+### Fixed
+- Completion would crash when an application didn’t have a `paint` method
+- `ScrollPanel`’s focus would never be in the last line
+- Missing import could crash the application in case of an erroneous situation
+
+
+## 1.4.1
+### Fixed
+- `ScrollPanel` wouldn't clear the last line of the panel when clearing the background, but instead write over the margins on the panels
+- Partial border drawing fixed (don't draw corners on ending edges)
+
+
 ## 1.4.0
 ### Fixed
 - All combinations of borders now draws correctly in `Panel`

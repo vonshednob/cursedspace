@@ -1,3 +1,4 @@
+"""A single line of user input with optional completion"""
 import logging
 import curses
 import string
@@ -9,7 +10,39 @@ from .key import Key
 
 
 class Completion:
+    """A completion/suggestion box for InputLine
+
+    This allows you to add autocompletion/suggestions to an InputLine
+    component.
+
+    You will have to derive your own variant from this though and implement
+    `update`.
+
+    Have a look at the sample `SingleWordCompletion` to see what that could
+    look like.
+    """
+    class Suggestion:
+        def __init__(self, text, label=None):
+            self.text = text
+            self.label = label
+
+        def __str__(self):
+            if self.label is not None:
+                return self.label
+            return self.text
+
+        def __lt__(self, other):
+            return str(self) < str(other)
+
     COLOR = colors.DEFAULT
+    ALT_COLOR = colors.DEFAULT
+
+    MAX_HEIGHT = 10
+    """Maximum height of the suggestion window"""
+    MAX_WIDTH = -1
+    """Maximum width of the suggestion window
+
+    -1 means that it tries to fit the longest suggestion."""
 
     KEYS_NEXT_ALTERNATIVE = [Key.DOWN, "^N", Key.TAB]
     KEYS_PREVIOUS_ALTERNATIVE = [Key.UP, "^P"]
@@ -19,12 +52,19 @@ class Completion:
     class SuggestionPanel(ScrollPanel):
         def __init__(self, parent):
             super().__init__(parent.app)
+            self.color = parent.COLOR
+            self.alt_color = parent.ALT_COLOR
 
         def do_paint_item(self, y, x, maxwidth, is_selected, item):
-            attr = curses.A_REVERSE
+            attr = curses.A_REVERSE + colors.attr(self.alt_color)
             if is_selected:
                 attr = curses.A_NORMAL
-            label = item[:maxwidth]
+                attr += colors.attr(self.color)
+            if isinstance(item, Completion.Suggestion):
+                label = item.label if item.label is not None else item.text
+            else:
+                label = str(item)
+            label = label[:maxwidth]
             label = label + " "*(maxwidth-len(label)+1)
             try:
                 self.win.addstr(y, x, label[:maxwidth], attr)
@@ -59,12 +99,14 @@ class Completion:
                 handled = True
 
             if handled:
-                self.app.paint()
-        
+                self.app.refresh(True)
+
         return handled
 
     def alternative_selected(self, alternative):
         """Called when the user selected an alternative from the list of options"""
+        if isinstance(alternative, Completion.Suggestion):
+            alternative = alternative.text
         self.inputline.replace_word(alternative)
 
     def paint(self, clear=False):
@@ -92,7 +134,9 @@ class Completion:
 
     def autosize(self, y, x):
         """Auto resize the suggestion box with the anchor being at y,x"""
-        if not self.is_visible:
+        if not self.is_visible or \
+           self.suggestions is None or \
+           self.suggestions.items is None:
             return
 
         screen_h, screen_w = self.app.size()
@@ -100,30 +144,35 @@ class Completion:
         space_below = screen_h - (y+1)
         space_above = y-1
         space_right = screen_w - (x+1)
-        height = min([10, len(self.suggestions.items), max(space_below, space_above)])
-        width = max([len(item) for item in self.suggestions.items])
+        height = min([self.MAX_HEIGHT,
+                      len(self.suggestions.items),
+                      max([space_below, space_above])])
+        max_width = self.MAX_WIDTH
+        if max_width < 0:
+            max_width = screen_w-2
+        width = min([screen_w-2,
+                     max_width,
+                     max([len(item.label)
+                          if isinstance(item, Completion.Suggestion) else len(str(item))
+                          for item in self.suggestions.items])])
 
         py = y
         px = x
 
-        if width >= screen_w:
-            width = 2*width//3
+        # position on the horizontal axis
+        if space_right >= width:
+            # all fits nicely right of the anchor
+            px = x + 1
+        else:
+            # all fits, but left of the anchor
+            px = x + (space_right - width)
 
-        if space_right < width:
-            if x >= width:
-                px = x-width
-            else:
-                px = screen_w - width
-
-        if space_below < height and space_above < height:
-            if space_below > space_above:
-                height = space_below
-            else:
-                height = space_above
-
+        # position vertically
         if space_below >= height:
-            py = y+1
-        elif space_above >= height:
+            # all fits nicely below the input box
+            py = y + 1
+        else:
+            # fits, but only above
             py = y - height
 
         self.suggestions.resize(height, width)
@@ -146,7 +195,7 @@ class Completion:
         else:
             if pos is None:
                 pos = self.suggestions.pos[:]
-        self.suggestions.items = items
+        self.suggestions.items = items[:]
         self.autosize(*pos)
 
     @property
@@ -162,6 +211,67 @@ class Completion:
             self.suggestions = None
             return True
         return False
+
+
+class SingleWordCompletion(Completion):
+    """An example implementation of a completion
+
+    This will provide autocompletion/suggestion for the first word
+    that the user types/might type in the input line.
+
+    To use it, pass SingleWordCompletionWrapper(list_of_words) to the input
+    line like this:
+
+        words = ["brick", "elbow", "pudding"]
+        edit = InputLine(self, self.size()[1], (0, 0),
+                         completion=SingleWordCompletionWrapper(words))
+
+    or instead assign the `completion` property afterwards:
+
+        edit = InputLine(self, self.size()[1], (0, 0))
+        edit.completion = SingleWordCompletion(edit, words)
+
+    You can also use Completion.Suggestion to select by label and insert
+    other text:
+
+        suggestions = [Completion.Suggestion(*pair)
+                       for pair in [("Spanish Inquisition", "nobody"),
+                                    ("I'm not dead!", "parrot")]]
+        edit.completion = SingleWordCompletion(edit, suggestions)
+    """
+    def __init__(self, inputline, words):
+        super().__init__(inputline)
+        self.words = words
+
+    def update(self, y, x):
+        text = self.inputline.text[:self.inputline.cursor]
+        if text.endswith(' '):
+            text = ''
+        else:
+            text = text.split(' ')[-1]
+
+        options = [word
+                   for word in sorted(self.words, key=lambda a: str(a))
+                   if (isinstance(word, Completion.Suggestion) and word.label.startswith(text))
+                      or str(word).startswith(text)]
+        if len(options) == 1 and \
+           ((isinstance(options[0], Completion.Suggestion) and options[0].label == text)
+                   or str(options[0]) == text):
+            # only available option typed out
+            self.close()
+        elif len(options) > 0:
+            # there are options? show them
+            self.set_alternatives(options, (y, x))
+        elif self.is_visible:
+            # no options, but the box is still visible? close it
+            self.close()
+
+
+def SingleWordCompletionWrapper(words):
+    """Convenience wrapper for SingleWordCompletion"""
+    def wrapped(inputline):
+        return SingleWordCompletion(inputline, words)
+    return wrapped
 
 
 class InputLine(Panel):
@@ -184,10 +294,25 @@ class InputLine(Panel):
                 break
             else:
                 edit.handle_key(key)
+
+    The input line allows the use of a completion box. To use it, just provide
+    an instance of Completion (you will have to derive your own though):
+
+        class MyFancyCompletion(Completion):
+            def update(self, y, x):
+                self.set_alternatives(["fancy"], (y, x))
+
+        edit = InputLine(self, self.size()[1], (0, 0), completion=MyFancyWordCompletion)
+
+    Or assign the InputLine.completion parameter later to your instance:
+
+        edit = InputLine(self, self.size()[1], (0, 0))
+        edit.completion = MyFancyCompletion(edit)
     """
     def __init__(self, app, width, pos, text="", prefix="", background=' ', completion=None):
-        self.completion = completion(self) if completion is not None else None
+        self.completion = None
         super().__init__(app, (1, width), pos)
+        self.completion = completion(self) if completion is not None else None
         self.text = text
         self.offset = 0
         self.cursor = 0
@@ -311,7 +436,6 @@ class InputLine(Panel):
 
         if not self.read_only and self.completion is not None and self.completion.handle_key(key):
             logging.debug(f"Completion should have handled {key}")
-            pass
 
         elif key in [Key.RIGHT]:
             self.cursor = min(len(self.text), self.cursor+1)
@@ -353,5 +477,4 @@ class InputLine(Panel):
 
         if must_repaint:
             self.paint()
-            self.focus()
-
+        self.focus()

@@ -53,6 +53,11 @@ def compile_documentation():
     return htmlfiles
 
 
+def example_files():
+    path = pathlib.Path('./examples')
+    return list('examples/' + fn.name for fn in path.iterdir() if fn.suffix == '.py')
+
+
 setuptools.setup(
     name='cursedspace',
     version=version.__version__,
@@ -69,7 +74,8 @@ setuptools.setup(
     package_data={'cursedspace': compile_documentation()},
     data_files=[('share/man/man3', ['man/cursedspace.3']),
                 ('share/applications', []),
-                ('share/doc/cursedspace', [])],
+                ('share/doc/cursedspace', []),
+                ('share/doc/cursedspace/examples', example_files())],
     install_requires=[],
     extras_require={},
     python_requires='>=3.8',

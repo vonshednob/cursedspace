@@ -110,34 +110,58 @@ class Panel:
         right_height = self.dim[0]
         left_top = 0
         right_top = 0
+        corner_top_left = Panel.BORDER_TOP + Panel.BORDER_LEFT
+        corner_top_right = Panel.BORDER_TOP + Panel.BORDER_RIGHT
+        corner_bottom_left = Panel.BORDER_BOTTOM + Panel.BORDER_LEFT
+        corner_bottom_right = Panel.BORDER_BOTTOM + Panel.BORDER_RIGHT
 
         if clear:
             self.win.erase()
 
-        if self.border & (Panel.BORDER_TOP + Panel.BORDER_LEFT) != 0:
-            self.win.addstr(0, 0, self.BORDER_STYLE[0])
+        if self.border & corner_top_left != 0:
+            corner = self.BORDER_STYLE[5]
+            if self.border & corner_top_left == corner_top_left:
+                corner = self.BORDER_STYLE[0]
+            elif self.border & corner_top_left == Panel.BORDER_TOP:
+                corner = self.BORDER_STYLE[4]
+            self.win.addstr(0, 0, corner)
             left_height -= 1
             left_top += 1
             top_width -= 1
             top_left += 1
 
-        if self.border & (Panel.BORDER_TOP + Panel.BORDER_RIGHT) != 0:
-            self.win.addstr(0, self.dim[1]-1, self.BORDER_STYLE[1])
+        if self.border & corner_top_right != 0:
+            corner = self.BORDER_STYLE[5]
+            if self.border & corner_top_right == corner_top_right:
+                corner = self.BORDER_STYLE[1]
+            elif self.border & corner_top_right == Panel.BORDER_TOP:
+                corner = self.BORDER_STYLE[4]
+            self.win.addstr(0, self.dim[1]-1, corner)
             right_height -= 1
             right_top += 1
             top_width -= 1
 
-        if self.border & (Panel.BORDER_BOTTOM + Panel.BORDER_LEFT) != 0:
-            self.win.addstr(self.dim[0]-1, 0, self.BORDER_STYLE[2])
+        if self.border & corner_bottom_left != 0:
+            corner = self.BORDER_STYLE[5]
+            if self.border & corner_bottom_left == corner_bottom_left:
+                corner = self.BORDER_STYLE[2]
+            elif self.border & corner_bottom_left == Panel.BORDER_BOTTOM:
+                corner = self.BORDER_STYLE[4]
+            self.win.addstr(self.dim[0]-1, 0, corner)
             left_height -= 1
             bottom_width -= 1
             bottom_left += 1
-            
-        if self.border & (Panel.BORDER_BOTTOM + Panel.BORDER_RIGHT) != 0:
+
+        if self.border & corner_bottom_right != 0:
             # curses raises an exception when drawing in the lowest, most right
             # cell of the window
+            corner = self.BORDER_STYLE[5]
+            if self.border & corner_bottom_right == corner_bottom_right:
+                corner = self.BORDER_STYLE[3]
+            elif self.border & corner_bottom_right == Panel.BORDER_BOTTOM:
+                corner = self.BORDER_STYLE[4]
             try:
-                self.win.addnstr(self.dim[0]-1, self.dim[1]-1, self.BORDER_STYLE[3], 1)
+                self.win.addstr(self.dim[0]-1, self.dim[1]-1, corner)
             except curses.error:
                 pass
             right_height -= 1
@@ -167,4 +191,3 @@ class Panel:
         self.win.mvwin(y, x)
         self.app.screen.touchwin()
         self.app.screen.noutrefresh()
-

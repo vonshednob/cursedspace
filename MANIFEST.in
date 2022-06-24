@@ -1,0 +1,8 @@
+recursive-include doc *
+recursive-include man *
+
+recursive-include tests *.py
+
+include CHANGELOG.md
+include LICENSE
+include AUTHORS.md

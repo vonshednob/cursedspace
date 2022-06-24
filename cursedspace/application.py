@@ -1,3 +1,4 @@
+import logging
 import locale
 import curses
 import sys
@@ -102,6 +103,14 @@ class Application:
         self.is_initialized = True
 
     def end_curses(self):
+        """Will be called after the end of the application
+
+        This function will restore the terminal and cursor state prior
+        to the launch of the application and clear the screen.
+        """
+        if not self.is_initialized:
+            return
+
         self.screen.clear()
         self.screen.refresh()
 
@@ -116,7 +125,7 @@ class Application:
         try:
             curses.endwin()
         except curses.error as exc:
-            logging.info(f"Ending curses failed: {exc}")
+            logging.info("Ending curses failed: %s", exc)
 
     def set_term_title(self, title):
         """Attempt to set the title of the terminal emulator"""
@@ -127,4 +136,3 @@ class Application:
 
     def __delete__(self):
         self.end_curses()
-
